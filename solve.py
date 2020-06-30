@@ -4,7 +4,7 @@ import time
 import pyautogui as auto
 
 h, w = 4, 4
-auto.PAUSE = 0.01
+auto.PAUSE = 0.1
 
 
 class Solution:
