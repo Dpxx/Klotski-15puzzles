@@ -1,10 +1,9 @@
 from queue import PriorityQueue
 import time
 # from eract4 import eract
-import pyautogui as auto
+# import pyautogui as auto
 
 h, w = 4, 4
-auto.PAUSE = 0.1
 
 
 class Solution:
@@ -27,6 +26,15 @@ class Solution:
         return dis
         # return 0 #退化为BFS算法
 
+    @staticmethod
+    def finish(target,board):
+        for i in range(15):
+            if target[i] == -1:
+                continue
+            if target[i] != board[i]:
+                return False
+        return True
+
     def solve_first_line(self, board0):
         i_n = [1, 2, 3, 4]
         board = []
@@ -39,7 +47,7 @@ class Solution:
                 board.append(-1)
         start = tuple(board)
         process = []
-        target = (1, 2, 3, 4, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
+        target = (1, 2, 3, 4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
 
         # 优先队列，值越小，优先级越高
         pQueue = PriorityQueue()
@@ -49,7 +57,7 @@ class Solution:
 
         while not pQueue.empty():
             _pri, board, pos0, depth, process, board0 = pQueue.get()
-            if board == target:
+            if self.finish(target, board):
                 return depth, process, board0
             for d in (-1, 1, -w, w):  # 对应的是左右上下的相邻结点
                 nei = pos0 + d
@@ -77,7 +85,7 @@ class Solution:
                 board.append(-1)
         start = tuple(board)
         process = []
-        target = (1, 2, 3, 4, 5, 0, -1, -1, 9, -1, -1, -1, 13, -1, -1, -1)
+        target = (1, 2, 3, 4, 5, -1, -1, -1, 9, -1, -1, -1, 13, -1, -1, -1)
 
         # 优先队列，值越小，优先级越高
         pQueue = PriorityQueue()
@@ -87,7 +95,7 @@ class Solution:
 
         while not pQueue.empty():
             _pri, board, pos0, depth, process, board0 = pQueue.get()
-            if board == target:
+            if self.finish(target, board):
                 return depth, process, board0
             for d in (-1, 1, -w, w):  # 对应的是左右上下的相邻结点
                 nei = pos0 + d
@@ -131,26 +139,12 @@ class Solution:
                         pQueue.put([depth + 1 + self.calDistance(newt), newt, nei, depth + 1, process + [d]])
 
 
-def auto_click4(b):
-    t_solve = time.time()
-    step_num, process = Solution().solve(b)
-    print("总步数{},计算用时{}".format(step_num, time.time() - t_solve))
-
-    first_x = 1025 # 这里的坐标是左上角的位置，根据自己屏幕调的
-    first_y = 330
-    width = 120
-    zero_pos = (first_x + b.index(0) % 4 * width, first_y + b.index(0) // 4 * width)
-    auto.moveTo(zero_pos)
-
-    t_move = time.time()
-    for i in process:
-        if i == 1:
-            auto.moveRel(width, None)
-        elif i == -1:
-            auto.moveRel(-width, None)
-        elif i == -4:
-            auto.moveRel(None, -width)
-        else:
-            auto.moveRel(None, width)
-        auto.click()
-    print("执行用时{}".format(time.time() - t_move))
+b = [1,  2,  3,  4,
+     5,  6,  0,  7,
+     9,  10, 11, 8, 
+     13, 14, 15, 12
+     ]
+t_solve = time.time()
+step_num, process = Solution().solve(b)
+print("总步数{},计算用时{}".format(step_num, time.time() - t_solve))
+print(process)
