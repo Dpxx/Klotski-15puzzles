@@ -1,7 +1,5 @@
 from queue import PriorityQueue
 import time
-# from eract4 import eract
-# import pyautogui as auto
 
 h, w = 4, 4
 
