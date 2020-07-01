@@ -137,7 +137,11 @@ class Solution:
                         pQueue.put([depth + 1 + self.calDistance(newt), newt, nei, depth + 1, process + [d]])
 
 
-b = [7, 14, 5, 10, 15, 0, 1, 3, 12, 2, 13, 4, 6, 8, 11, 9]
+b = [7, 9, 4, 14,
+     8, 2, 0, 5,
+     13, 11, 15, 10,
+     1, 3, 6, 12
+     ]
 t_solve = time.time()
 step_num, process = Solution().solve(b)
 print("总步数{},计算用时{}".format(step_num, time.time() - t_solve))
