@@ -1,20 +1,11 @@
 from queue import PriorityQueue
 import time
-# from eract4 import eract
 # import pyautogui as auto
 
 h, w = 4, 4
 
 
 class Solution:
-    # BFS + A*
-    def solve(self, board):
-        pro1 = self.solve_first_line(board)
-        pro2 = self.solve_first_column(pro1[2])
-        pro3 = self.solve_last_8(pro2[2])
-
-        return sum([pro1[0], pro2[0], pro3[0]]), pro1[1] + pro2[1] + pro3[1]
-
     # 计算当前节点到目标节点的距离
     @staticmethod
     def calDistance(node):
@@ -27,7 +18,7 @@ class Solution:
         # return 0 #退化为BFS算法
 
     @staticmethod
-    def finish(target,board):
+    def finish(target, board):
         for i in range(15):
             if target[i] == -1:
                 continue
@@ -35,19 +26,29 @@ class Solution:
                 return False
         return True
 
-    def solve_first_line(self, board0):
-        i_n = [1, 2, 3, 4]
-        board = []
-        for i in board0:
-            if i in i_n:
-                board.append(i)
-            elif i == 0:
-                board.append(0)
-            else:
-                board.append(-1)
+    # BFS + A*
+    def solve(self, board0, n=w):
+        bound = []
+        if n == 3:
+            board = board0
+            bound = [i -1 for i in range(1, 16) if (i - 1) // 4 == 0 or (i - 1) % 4 == 0]
+        else:
+            board = []
+            i_n = [i for i in range(1, 16) if (i - 1) // 4 == 0 or (i - 1) % 4 == 0]
+            for i in board0:
+                if i in i_n:
+                    board.append(i)
+                elif i == 0:
+                    board.append(0)
+                else:
+                    board.append(-1)
+
         start = tuple(board)
         process = []
-        target = (1, 2, 3, 4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
+        if n == 3:
+            target = tuple([*range(1, 4 * 4)] + [0])
+        else:
+            target = (1, 2, 3, 4, 5, -1, -1, -1, 9, -1, -1, -1, 13, -1, -1, -1)
 
         # 优先队列，值越小，优先级越高
         pQueue = PriorityQueue()
@@ -58,12 +59,14 @@ class Solution:
         while not pQueue.empty():
             _pri, board, pos0, depth, process, board0 = pQueue.get()
             if self.finish(target, board):
-                return depth, process, board0
+                if n == 3:
+                    return process
+                return process + self.solve(board0, n-1)
             for d in (-1, 1, -w, w):  # 对应的是左右上下的相邻结点
                 nei = pos0 + d
                 if abs(nei // w - pos0 // w) + abs(nei % w - pos0 % w) != 1:
                     continue
-                if 0 <= nei < w * h:  # 符合边界条件的相邻结点
+                if 0 <= nei < w * h and nei not in bound:  # 符合边界条件的相邻结点
                     newboard = list(board)
                     newboard[pos0], newboard[nei] = newboard[nei], newboard[pos0]
                     newboard0 = list(board0)
@@ -73,78 +76,13 @@ class Solution:
                         seen.add(newt)
                         pQueue.put([depth + 1 + self.calDistance(newt), newt, nei, depth + 1, process + [d], newboard0])
 
-    def solve_first_column(self, board0):
-        i_n = [1, 2, 3, 4, 5, 9, 13]
-        board = []
-        for i in board0:
-            if i in i_n:
-                board.append(i)
-            elif i == 0:
-                board.append(0)
-            else:
-                board.append(-1)
-        start = tuple(board)
-        process = []
-        target = (1, 2, 3, 4, 5, -1, -1, -1, 9, -1, -1, -1, 13, -1, -1, -1)
 
-        # 优先队列，值越小，优先级越高
-        pQueue = PriorityQueue()
-        pQueue.put([0 + self.calDistance(start), start, start.index(0), 0, process, board0])
-
-        seen = {start}  # 已遍历过的结点
-
-        while not pQueue.empty():
-            _pri, board, pos0, depth, process, board0 = pQueue.get()
-            if self.finish(target, board):
-                return depth, process, board0
-            for d in (-1, 1, -w, w):  # 对应的是左右上下的相邻结点
-                nei = pos0 + d
-                if abs(nei // w - pos0 // w) + abs(nei % w - pos0 % w) != 1:
-                    continue
-                if 4 <= nei < w * h:  # 符合边界条件的相邻结点
-                    newboard = list(board)
-                    newboard[pos0], newboard[nei] = newboard[nei], newboard[pos0]
-                    newboard0 = list(board0)
-                    newboard0[pos0], newboard0[nei] = newboard0[nei], newboard0[pos0]
-                    newt = tuple(newboard)
-                    if newt not in seen:  # 没有被遍历过的结点
-                        seen.add(newt)
-                        pQueue.put([depth + 1 + self.calDistance(newt), newt, nei, depth + 1, process + [d], newboard0])
-
-    def solve_last_8(self, board):
-        start = tuple(board)
-        process = []
-        target = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0)
-
-        # 优先队列，值越小，优先级越高
-        pQueue = PriorityQueue()
-        pQueue.put([0 + self.calDistance(start), start, start.index(0), 0, process])
-
-        seen = {start}  # 已遍历过的结点
-
-        while not pQueue.empty():
-            _pri, board, pos0, depth, process = pQueue.get()
-            if board == target:  # 如果已经为目标结点，直接返回depth
-                return depth, process
-            for d in (-1, 1, -w, w):  # 对应的是左右上下的相邻结点
-                nei = pos0 + d
-                if abs(nei // w - pos0 // w) + abs(nei % w - pos0 % w) != 1:
-                    continue
-                if 4 <= nei < w * h and nei != 8 and nei != 12:  # 符合边界条件的相邻结点
-                    newboard = list(board)
-                    newboard[pos0], newboard[nei] = newboard[nei], newboard[pos0]
-                    newt = tuple(newboard)
-                    if newt not in seen:  # 没有被遍历过的结点
-                        seen.add(newt)
-                        pQueue.put([depth + 1 + self.calDistance(newt), newt, nei, depth + 1, process + [d]])
-
-
-b = [1,  2,  3,  4,
-     5,  6,  0,  7,
-     9,  10, 11, 8, 
-     13, 14, 15, 12
+b = [7, 9, 4, 14,
+     8, 2, 0, 5,
+     13, 11, 15, 10,
+     1, 3, 6, 12
      ]
 t_solve = time.time()
-step_num, process = Solution().solve(b)
-print("总步数{},计算用时{}".format(step_num, time.time() - t_solve))
+process = Solution().solve(b, 4)
+print("总步数{},计算用时{}".format(len(process), time.time() - t_solve))
 print(process)
