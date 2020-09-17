@@ -30,16 +30,8 @@ class Solution:
         while not pQueue.empty():
             _pri, board, pos0, depth, process = pQueue.get()
 
-            if size == 4:
-                if str(board) in pre_solve:  # 如果遇到预存的状态，直接返回
-                    pre_solution = pre_solve[str(board)]
-                    return depth + len(pre_solution), process + pre_solution
-                # elif flag:
-                #     pre_solve = pre_solve_15
-                #     flag = False
-            elif size == 3:
-                if board == target:
-                    return depth, process
+            if board == target:
+                return depth, process
             for d in (-1, 1, -size, size):  # 对应的是左右上下的相邻结点
                 nei = pos0 + d
                 if abs(nei // size - pos0 // size) + abs(nei % size - pos0 % size) != 1:
