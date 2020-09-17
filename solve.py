@@ -1,88 +1,62 @@
 from queue import PriorityQueue
 import time
-# import pyautogui as auto
-
-h, w = 4, 4
-
 
 class Solution:
     # 计算当前节点到目标节点的距离
     @staticmethod
-    def calDistance(node):
+    def calDistance(node, w):
         dis = 0
         for i in range(len(node)):
-            if node[i] == 0 | node[i] == -1:
+            if node[i] == 0:
                 continue
             dis += abs(i // w - (node[i] - 1) // w) + abs(i % w - (node[i] - 1) % w)
         return dis
         # return 0 #退化为BFS算法
 
-    @staticmethod
-    def finish(target, board):
-        for i in range(15):
-            if target[i] == -1:
-                continue
-            if target[i] != board[i]:
-                return False
-        return True
-
     # BFS + A*
-    def solve(self, board0, n=w):
-        bound = []
-        if n == 3:
-            board = board0
-            bound = [i -1 for i in range(1, 16) if (i - 1) // 4 == 0 or (i - 1) % 4 == 0]
-        else:
-            board = []
-            i_n = [i for i in range(1, 16) if (i - 1) // 4 == 0 or (i - 1) % 4 == 0]
-            for i in board0:
-                if i in i_n:
-                    board.append(i)
-                elif i == 0:
-                    board.append(0)
-                else:
-                    board.append(-1)
-
+    def solve(self, board):
+        # global flag, pre_solve
+        size = int(len(board) ** 0.5)
         start = tuple(board)
         process = []
-        if n == 3:
-            target = tuple([*range(1, 4 * 4)] + [0])
-        else:
-            target = (1, 2, 3, 4, 5, -1, -1, -1, 9, -1, -1, -1, 13, -1, -1, -1)
+        target = tuple([i for i in range(1, size ** 2)] + [0])
 
         # 优先队列，值越小，优先级越高
         pQueue = PriorityQueue()
-        pQueue.put([0 + self.calDistance(start), start, start.index(0), 0, process, board0])
+        pQueue.put([0 + self.calDistance(start, size), start, start.index(0), 0, process])
 
         seen = {start}  # 已遍历过的结点
 
         while not pQueue.empty():
-            _pri, board, pos0, depth, process, board0 = pQueue.get()
-            if self.finish(target, board):
-                if n == 3:
-                    return process
-                return process + self.solve(board0, n-1)
-            for d in (-1, 1, -w, w):  # 对应的是左右上下的相邻结点
+            _pri, board, pos0, depth, process = pQueue.get()
+
+            if size == 4:
+                if str(board) in pre_solve:  # 如果遇到预存的状态，直接返回
+                    pre_solution = pre_solve[str(board)]
+                    return depth + len(pre_solution), process + pre_solution
+                # elif flag:
+                #     pre_solve = pre_solve_15
+                #     flag = False
+            elif size == 3:
+                if board == target:
+                    return depth, process
+            for d in (-1, 1, -size, size):  # 对应的是左右上下的相邻结点
                 nei = pos0 + d
-                if abs(nei // w - pos0 // w) + abs(nei % w - pos0 % w) != 1:
+                if abs(nei // size - pos0 // size) + abs(nei % size - pos0 % size) != 1:
                     continue
-                if 0 <= nei < w * h and nei not in bound:  # 符合边界条件的相邻结点
+                if 0 <= nei < size ** 2:  # 符合边界条件的相邻结点
                     newboard = list(board)
                     newboard[pos0], newboard[nei] = newboard[nei], newboard[pos0]
-                    newboard0 = list(board0)
-                    newboard0[pos0], newboard0[nei] = newboard0[nei], newboard0[pos0]
                     newt = tuple(newboard)
-                    if newt not in seen:  # 没有被遍历过的结点
+                    if newt not in seen:  # 没有被遍历过的状态
                         seen.add(newt)
-                        pQueue.put([depth + 1 + self.calDistance(newt), newt, nei, depth + 1, process + [d], newboard0])
-
-
-b = [7, 9, 4, 14,
-     8, 2, 0, 5,
-     13, 11, 15, 10,
-     1, 3, 6, 12
-     ]
-t_solve = time.time()
-process = Solution().solve(b, 4)
-print("总步数{},计算用时{}".format(len(process), time.time() - t_solve))
-print(process)
+                        # pQueue.put([depth + 1 + 2 * self.calDistance(newt), newt, nei, depth + 1, process + [d]])
+                        pQueue.put(
+                            [depth + 1 + 0.9 * self.calDistance(newt, size), newt, nei, depth + 1, process + [d]]) # 调整启发函数的权重可以缩短时间但增加步数
+                        
+                        
+if __name__ == '__main__':
+    t0 = time.time()
+    print(Solution().solve([4,13,7,6,3,5,15,12,2,9,11,14,1,8,10,0]))
+    print(time.time() - t0)
+    print(Solution().solve([8,3,5,7,4,1,0,2,6]))
